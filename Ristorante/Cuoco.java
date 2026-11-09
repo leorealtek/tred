@@ -1,8 +1,8 @@
 package Ristorante;
 
 public class Cuoco implements Runnable {
-    private String nome;
-    private Ristorante ristorante;
+    private final String nome;
+    private final Ristorante ristorante;
 
     public Cuoco(String nome, Ristorante ristorante) {
         this.nome = nome;
@@ -12,32 +12,14 @@ public class Cuoco implements Runnable {
     @Override
     public void run() {
         for (int i = 0; i < 10; i++) {
-            mettiPiatto();
-            try {
-                Thread.sleep((long) (Math.random() * 200));
-            } catch (InterruptedException e) {}
-            prendiPiatto();
-        }
-    }
-    
-    public synchronized void mettiPiatto() {
-        Piatto piatto = new Piatto("Piatto normale", (int) (Math.random() * 10));
-        for (int i = 0; i < ristorante.getPiatti().length; i++) {
-            if (ristorante.getPiatti()[i] == null) {
-                ristorante.getPiatti()[i] = piatto;
-                piatto = null;
-                break;
+            Piatto piatto = new Piatto("Piatto normale", (int) (Math.random() * 10));
+            while (!ristorante.mettiPiatto(piatto)) {
+                try { Thread.sleep((long) (Math.random() * 200)); } catch (InterruptedException e) {}
             }
+            try { Thread.sleep((long) (Math.random() * 200)); } catch (InterruptedException e) {}
+            ristorante.rimuoviPiattiMangiati();
         }
-    }
-
-    public synchronized void prendiPiatto() {
-        for (int i = 0; i < ristorante.getPiatti().length; i++) {
-            if (ristorante.getPiatti()[i] != null && ristorante.getPiatti()[i].isMangiato()) {
-                ristorante.getPiatti()[i] = null;
-                break;
-            }
-        }
+        
     }
 
     public String getNome() {
@@ -47,5 +29,4 @@ public class Cuoco implements Runnable {
     public Ristorante getRistorante() {
         return ristorante;
     }
-
 }

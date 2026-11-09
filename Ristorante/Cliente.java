@@ -1,52 +1,39 @@
 package Ristorante;
 
 public class Cliente implements Runnable {
-    private String nome;
+    private final String nome;
     private Piatto piatto;
-    private Ristorante ristorante;
+    private final Ristorante ristorante;
 
     public Cliente(String nome, Ristorante ristorante) {
         this.nome = nome;
-        this.piatto = null;
         this.ristorante = ristorante;
     }
 
     @Override
     public void run() {
+        ristorante.registraCliente();
         for (int i = 0; i < 5; i++) {
-            do {
+            while (piatto == null) {
                 prendiPiatto();
-                try {
-                    Thread.sleep((long) (Math.random() * 200));
-                } catch (InterruptedException e) {}
-            } while (piatto != null);
-            rimettiPiatto();
+                if (piatto == null) try { Thread.sleep((long) (Math.random() * 200)); } catch (InterruptedException e) {}
+            }
+            try { Thread.sleep((long) (Math.random() * 200)); } catch (InterruptedException e) {}
             paga();
-        }
-    }
-    
-    public synchronized void prendiPiatto() {
-        for (int i = 0; i < ristorante.getPiatti().length; i++) {
-            if (ristorante.getPiatti()[i] != null) {
-                piatto = ristorante.getPiatti()[i];
-                ristorante.getPiatti()[i] = null;
-                break;
-            }
+            rimettiPiatto();
+            piatto = null;
         }
     }
 
-    public synchronized void rimettiPiatto() {
-        for (int i = 0; i < ristorante.getPiatti().length; i++) {
-            if (ristorante.getPiatti()[i] == null) {
-                piatto.mangia();
-                ristorante.getPiatti()[i] = piatto;
-                piatto = null;
-                break;
-            }
-        }
+    public void prendiPiatto() {
+        piatto = ristorante.prendiPiatto();
     }
 
-    public synchronized void paga() {
+    public void rimettiPiatto() {
+        ristorante.rimettiPiatto(piatto);
+    }
+
+    public void paga() {
         ristorante.aggiungiSoldi(piatto.getPrezzo());
     }
 
@@ -61,5 +48,4 @@ public class Cliente implements Runnable {
     public Ristorante getRistorante() {
         return ristorante;
     }
-
 }
